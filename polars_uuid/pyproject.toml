@@ -1,0 +1,45 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "polars-uuid"
+requires-python = ">=3.10"
+dependencies = [
+  'polars >= 1.32.0',
+]
+classifiers = [
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+authors = [
+    { name="Dennis O'Brien", email="[EMAIL_ADDRESS]"},
+]
+description = "UUID functions for Polars"
+readme = "README.md"
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/dennisobrien/polars-uuid"
+"Bug Tracker" = "https://github.com/dennisobrien/polars-uuid/issues"
+
+[tool.maturin]
+module-name = "polars_uuid._internal"
+
+[tool.ruff]
+src = ["polars_uuid", "tests"]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["polars_uuid"]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.2.0",
+    "maturin>=1.13.3",
+    "pandas>=2.2.0",
+    "pytest>=9.0.3",
+]
