@@ -825,7 +825,7 @@ wheels = [
 ]
 
 [[package]]
-name = "polars-uuid"
+name = "polars-uuid-plugin"
 source = { editable = "." }
 dependencies = [
     { name = "polars" },

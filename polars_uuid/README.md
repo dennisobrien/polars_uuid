@@ -1,6 +1,18 @@
 # polars-uuid
 
-A polars plugin that provides uuid functionality.
+A [Polars](https://pola.rs/) plugin that adds UUID generation and introspection
+expressions, implemented in Rust for speed (see `notebooks/benchmarks.ipynb` — the
+plugin is roughly 9-25x faster than the equivalent naive Python loop in polars or
+pandas).
+
+## Installation
+
+```bash
+pip install polars-uuid-plugin
+```
+
+(The PyPI distribution is named `polars-uuid-plugin`; the Python package you import
+is `polars_uuid`.)
 
 ## Usage
 
@@ -141,3 +153,37 @@ nm -D --defined-only polars_uuid/_internal.abi3.so | grep PyInit
 ```
 
 The fix is almost always to rebuild with `uv run maturin develop`.
+
+### Releasing
+
+Releases are built and published to PyPI automatically by
+[`.github/workflows/publish_to_pypi.yml`](../.github/workflows/publish_to_pypi.yml),
+authenticating via PyPI [trusted publishing](https://docs.pypi.org/trusted-publishers/)
+(OIDC — no API token involved). Every push and PR runs the test matrix; only pushing a
+tag triggers a publish attempt.
+
+The Python package version is **not** set in `pyproject.toml` (`dynamic = ["version"]`)
+— maturin reads it from `Cargo.toml`'s `[package] version` field.
+
+To cut a release:
+
+1. Bump `version` in `Cargo.toml`.
+2. Run `make install` once locally so `Cargo.lock` picks up the new version, then
+   commit both files (e.g. `git commit -am "Bump version to 0.2.0"`).
+3. Tag the commit and push the tag:
+   ```bash
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
+4. This triggers the workflow's `linux`/`windows`/`macos`/`sdist` jobs to build wheels,
+   then the `release` job. That job targets the `pypi` GitHub environment, which
+   requires manual approval — go to the workflow run under the repo's **Actions** tab
+   and approve the pending deployment.
+5. Once approved, the wheels are published to PyPI. The publish step passes
+   `--skip-existing`, so re-running a workflow for a version already on PyPI is a
+   no-op rather than a failure (PyPI itself still rejects re-uploading the same
+   version with different contents).
+
+To sanity-check the build/wheel steps without publishing, trigger the workflow
+manually from the **Actions** tab (`workflow_dispatch`) on a non-tag ref — it runs
+everything except the final publish step.

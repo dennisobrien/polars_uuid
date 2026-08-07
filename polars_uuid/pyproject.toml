@@ -3,7 +3,7 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "polars-uuid"
+name = "polars-uuid-plugin"
 requires-python = ">=3.10"
 dependencies = [
   'polars >= 1.32.0',
@@ -21,8 +21,8 @@ readme = "README.md"
 dynamic = ["version"]
 
 [project.urls]
-"Homepage" = "https://github.com/dennisobrien/polars-uuid"
-"Bug Tracker" = "https://github.com/dennisobrien/polars-uuid/issues"
+"Homepage" = "https://github.com/dennisobrien/polars_uuid"
+"Bug Tracker" = "https://github.com/dennisobrien/polars_uuid/issues"
 
 [tool.maturin]
 module-name = "polars_uuid._internal"
