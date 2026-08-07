@@ -133,9 +133,12 @@ jobs:
     strategy:
       matrix:
         platform:
-          - runner: macos-13
+          # macos-13 was removed from GitHub's hosted runner images entirely (jobs
+          # requesting it sit in `queued` forever rather than failing); macos-14 is
+          # deprecated. macos-15-intel/macos-15 are the current x86_64/arm64 images.
+          - runner: macos-15-intel
             target: x86_64
-          - runner: macos-14
+          - runner: macos-15
             target: aarch64
     steps:
       - uses: actions/checkout@v4
