@@ -68,6 +68,9 @@ jobs:
       - run: make test
 
   linux:
+    # Wheel builds are for release artifacts, not PR feedback — skip on pull_request
+    # to keep PR CI fast; still runs on push to main, on tags, and on workflow_dispatch.
+    if: github.event_name != 'pull_request'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -96,6 +99,7 @@ jobs:
           path: polars_uuid/dist
 
   windows:
+    if: github.event_name != 'pull_request'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -122,6 +126,7 @@ jobs:
           path: polars_uuid/dist
 
   macos:
+    if: github.event_name != 'pull_request'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -149,6 +154,7 @@ jobs:
           path: polars_uuid/dist
 
   sdist:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
