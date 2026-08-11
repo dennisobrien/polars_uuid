@@ -36,7 +36,11 @@ df.with_columns(
   value of `expr`. Null input produces a null result. `namespace` is a `uuid.UUID` (e.g.
   `uuid.NAMESPACE_DNS`) or an equivalent UUID `str` — **not** a namespace name like
   `"dns"`, and not an arbitrary string that gets hashed into one. A `namespace` that
-  doesn't parse as a UUID raises `pl.exceptions.ComputeError`.
+  doesn't parse as a UUID raises `pl.exceptions.ComputeError`. Output is byte-identical
+  to Python's `uuid.uuid5` for the same namespace and value — checked continuously by
+  [`test_uuid5_matches_stdlib_sweep`](tests/test_uuid.py), a seeded sweep over ~2,000
+  generated strings (including multi-byte UTF-8) plus edge cases like the empty string
+  and very long strings.
 - `uuid7(expr)` — a random, time-ordered UUID for each row (sorts by creation time).
   Only the length of `expr` matters; its values are ignored.
 - `is_valid_uuid(expr)` — whether each value of `expr` parses as a valid UUID. Null
