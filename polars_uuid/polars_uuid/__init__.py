@@ -44,7 +44,16 @@ def uuid7(expr: IntoExprColumn) -> pl.Expr:
 
 
 def uuid5(expr: IntoExprColumn, namespace: str | uuid.UUID) -> pl.Expr:
-    """Generate a deterministic (v5) UUID from a namespace and `expr`."""
+    """Generate a deterministic (v5) UUID from a namespace and `expr`.
+
+    Null input produces a null result.
+
+    `namespace` is parsed as a UUID (e.g. `uuid.NAMESPACE_DNS`, or an
+    equivalent UUID string like `"6ba7b810-9dad-11d1-80b4-00c04fd430c8"`) —
+    it is not a namespace *name* like `"dns"`, and not an arbitrary string
+    that gets hashed into a namespace. A `namespace` that doesn't parse as a
+    UUID raises `pl.exceptions.ComputeError`.
+    """
     return register_plugin_function(
         args=[expr],
         plugin_path=LIB,

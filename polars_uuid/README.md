@@ -32,8 +32,11 @@ df.with_columns(
 
 - `uuid4(expr)` — a random UUID for each row. Only the length of `expr` matters; its
   values are ignored.
-- `uuid5(expr, namespace)` — a deterministic UUID derived from `namespace` (a `str` or
-  `uuid.UUID`, e.g. `uuid.NAMESPACE_DNS`) and each value of `expr`.
+- `uuid5(expr, namespace)` — a deterministic UUID derived from `namespace` and each
+  value of `expr`. Null input produces a null result. `namespace` is a `uuid.UUID` (e.g.
+  `uuid.NAMESPACE_DNS`) or an equivalent UUID `str` — **not** a namespace name like
+  `"dns"`, and not an arbitrary string that gets hashed into one. A `namespace` that
+  doesn't parse as a UUID raises `pl.exceptions.ComputeError`.
 - `uuid7(expr)` — a random, time-ordered UUID for each row (sorts by creation time).
   Only the length of `expr` matters; its values are ignored.
 - `is_valid_uuid(expr)` — whether each value of `expr` parses as a valid UUID. Null
