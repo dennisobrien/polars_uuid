@@ -87,6 +87,60 @@ the format explicitly for every column.
   differently (`0.00001`, `1e-05`, `1.0E-5` respectively), so the same number produces
   three different ids.
 
+### A worked example: composite keys
+
+Almost nobody hashes one text column — a real id is usually built from several typed
+columns. Applying the rules above:
+
+```python
+import uuid
+from datetime import date, datetime
+
+import polars as pl
+import polars_uuid
+
+NULL_SENTINEL = "\x1f"  # a control character cannot occur in normal data
+
+events_df = pl.DataFrame(
+    {
+        "cohort_date": [date(2026, 8, 9), date(2026, 8, 10)],
+        "property_id": [3370, 42],  # Int64
+        "occ_code": pl.Series([168, 7], dtype=pl.Int16),
+        "created_at": [datetime(2026, 8, 9, 7, 51, 1, 34000), None],
+    }
+)
+
+key_expr = pl.concat_str(
+    [
+        pl.col("cohort_date").dt.to_string("%Y-%m-%d"),
+        pl.col("property_id").cast(pl.Int64).cast(pl.String),
+        pl.col("occ_code").cast(pl.Int64).cast(pl.String),
+        pl.col("created_at").dt.to_string("%Y-%m-%d %H:%M:%S%.6f"),
+    ],
+    separator="|",
+)
+
+events_df = events_df.with_columns(
+    polars_uuid.uuid5(key_expr.fill_null(NULL_SENTINEL), namespace=uuid.NAMESPACE_DNS)
+    .alias("event_id")
+)
+```
+
+Self-check against the stdlib, to confirm the built key text is what you think it is:
+
+```python
+expected = [
+    str(uuid.uuid5(uuid.NAMESPACE_DNS, name))
+    for name in events_df.select(key_expr.fill_null(NULL_SENTINEL)).to_series()
+]
+assert events_df["event_id"].to_list() == expected
+```
+
+Note there's no `uuid5_from_columns`-style helper for this — the separator, the null
+sentinel, and each column's text format are choices that have to match whatever other
+system reads the ids, so they belong to you, not to the library. This example shows the
+pattern; it's deliberately not baked into a function.
+
 None of this is about the hash itself — `uuid5`'s output is byte-identical to Python's
 stdlib `uuid.uuid5` regardless of which engine calls it (see above). Every case above is
 about the text you hand it not being the text you think it is.
