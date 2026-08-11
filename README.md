@@ -39,7 +39,10 @@ cutting a release.
 - [`notebooks/uuid_examples.ipynb`](notebooks/uuid_examples.ipynb) — a runnable
   walkthrough of every function
 - [`notebooks/benchmarks.ipynb`](notebooks/benchmarks.ipynb) — this plugin vs. naive
-  Python UUID generation in polars and pandas (roughly 9-25x faster)
+  Python UUID generation in polars and pandas: ~9-26x faster hashing an existing text
+  column in isolation, ~5-10x faster end-to-end on a realistic multi-column composite
+  key (see [`polars_uuid/README.md`](polars_uuid/README.md) for what each number
+  actually measures)
 
 ## Repository layout
 

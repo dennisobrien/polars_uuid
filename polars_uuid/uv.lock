@@ -835,6 +835,9 @@ dependencies = [
 dev = [
     { name = "ipykernel" },
     { name = "maturin" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pandas", version = "3.0.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pytest" },
@@ -847,6 +850,7 @@ requires-dist = [{ name = "polars", specifier = ">=1.32.0" }]
 dev = [
     { name = "ipykernel", specifier = ">=7.2.0" },
     { name = "maturin", specifier = ">=1.13.3" },
+    { name = "numpy", specifier = ">=2.2.6" },
     { name = "pandas", specifier = ">=2.2.0" },
     { name = "pytest", specifier = ">=9.0.3" },
 ]

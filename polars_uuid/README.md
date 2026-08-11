@@ -1,9 +1,20 @@
 # polars-uuid
 
 A [Polars](https://pola.rs/) plugin that adds UUID generation and introspection
-expressions, implemented in Rust for speed (see `notebooks/benchmarks.ipynb` — the
-plugin is roughly 9-25x faster than the equivalent naive Python loop in polars or
-pandas).
+expressions, implemented in Rust for speed. How much faster depends heavily on what
+you're measuring — see [`notebooks/benchmarks.ipynb`](../notebooks/benchmarks.ipynb)
+for the full script and methodology, but roughly:
+
+- **~9-26x** faster than a naive Python loop (`map_elements` in polars, a list
+  comprehension in pandas) when hashing a single already-text column — this isolates
+  the hash cost, at 1,000,000 rows.
+- **~5-10x** faster end-to-end on a more realistic 9-column composite key, where the
+  type-conversion step (identical across all three approaches) dominates more of the
+  total and dilutes the ratio — also at 1,000,000 rows.
+
+Neither number is "the" number; which one predicts your workload depends on whether
+you're hashing data that's already text or building a key from several typed columns
+first (see [below](#building-ids-that-reproduce-across-engines) either way).
 
 ## Installation
 
