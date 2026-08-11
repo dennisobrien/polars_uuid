@@ -50,6 +50,47 @@ df.with_columns(
 - `extract_timestamp(expr)` — the embedded creation timestamp of each time-based (v1,
   v6, v7) UUID in `expr`. Null for other versions, invalid UUIDs, or null input.
 
+## Building ids that reproduce across engines
+
+`uuid5` hashes text, so the id depends on how a typed value becomes text — and polars,
+pandas, and Spark don't all agree on that conversion. If the same logical value needs to
+produce the same id in more than one engine, never rely on a default string cast; fix
+the format explicitly for every column.
+
+- **Timestamps**: the default text depends on the `Datetime` time unit — `us` gives 6
+  fraction digits, `ns` gives 9 — so a frame that arrived via `pl.from_pandas` (which
+  defaults to `ns`) formats differently than one built natively in polars for the same
+  instant. Fix the precision instead of casting:
+  ```python
+  pl.col("created_at").dt.to_string("%Y-%m-%d %H:%M:%S%.6f")
+  ```
+- **Integers**: normalize the width so an `Int16` column and an `Int64` column agree on
+  the same number:
+  ```python
+  pl.col("code").cast(pl.Int64).cast(pl.String)
+  ```
+- **Dates**: pin the format rather than relying on the default:
+  ```python
+  pl.col("cohort_date").dt.to_string("%Y-%m-%d")
+  ```
+- **Nulls**: give them text, so a null can't silently vanish from a composite key. By
+  default `pl.concat_str` propagates null (the whole key becomes null — safe), but
+  `ignore_nulls=True` drops the null field instead: `("a", None, "c")` and
+  `("a", "c", None)` then both produce `"a|c"`, colliding two different rows onto the
+  same id.
+  ```python
+  expr.fill_null("\x1f")  # a control character that can't occur in normal data
+  ```
+  An empty string is a poor substitute for a sentinel — it makes a null and a real empty
+  string hash to the same id, trading one collision for another.
+- **Floats**: don't put them in a key. polars, pandas, and Spark each format `1e-05`
+  differently (`0.00001`, `1e-05`, `1.0E-5` respectively), so the same number produces
+  three different ids.
+
+None of this is about the hash itself — `uuid5`'s output is byte-identical to Python's
+stdlib `uuid.uuid5` regardless of which engine calls it (see above). Every case above is
+about the text you hand it not being the text you think it is.
+
 ## Developing and Testing
 
 This project is a Rust-backed Polars plugin built with [maturin](https://www.maturin.rs/)
