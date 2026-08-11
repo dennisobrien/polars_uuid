@@ -1,4 +1,5 @@
 import datetime
+import random
 import time
 import uuid
 
@@ -60,6 +61,41 @@ def test_uuid5_matches_published_reference_value():
         polars_uuid.uuid5("name", namespace=uuid.NAMESPACE_DNS).alias("id")
     )
     assert result["id"][0] == "886313e1-3b8a-5372-9b90-0c9aee199e5d"
+
+
+def test_uuid5_matches_stdlib_sweep():
+    """`uuid5` must be byte-identical to `uuid.uuid5` for the same input.
+
+    This is the property that makes `uuid5` usable for ids that need to match
+    ones built elsewhere with Python's stdlib. Covers a seeded random sweep
+    (including multi-byte UTF-8, to catch an implementation that hashes
+    something other than the raw UTF-8 bytes) plus explicit edge cases.
+    """
+    rng = random.Random(0)
+    alphabet = "0123456789abcdef|-_ é日🎲"
+    names = ["".join(rng.choices(alphabet, k=rng.randint(0, 40))) for _ in range(2000)]
+    names += [
+        "",
+        "|",
+        "|||",
+        " ",
+        "0",
+        "00",
+        "x" * 4096,
+        "nan",
+        "None",
+        "NaT",
+        "null",
+    ]
+
+    expected = [str(uuid.uuid5(uuid.NAMESPACE_DNS, name)) for name in names]
+    actual = (
+        pl.DataFrame({"name": names})
+        .select(polars_uuid.uuid5("name", namespace=uuid.NAMESPACE_DNS).alias("u"))
+        .to_series()
+        .to_list()
+    )
+    assert actual == expected
 
 
 def test_uuid5_is_deterministic():
